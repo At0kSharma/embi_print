@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://embi:embi@localhost:5432/embi")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://embi:embi@postgres:5432/embi")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
