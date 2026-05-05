@@ -1,5 +1,7 @@
 # embi_print Implementation Plan
 
+> **⚠️ SUPERSEDED (2026-05-05) by [`2026-05-05-embi-print-revised.md`](./2026-05-05-embi-print-revised.md).** Tasks 1–3 were completed against this plan; the rest was replaced after a brainstorming review identified structural issues (Celery overbuilt for v1, missing Printful variant mapping, pixel-coord mockups, webhook idempotency gaps). Keep this file as historical record only — do not execute remaining tasks from here.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a custom embroidery print-on-demand web service where customers upload a logo, configure placement on a t-shirt, preview it live, and check out — fulfilled automatically via Printful.

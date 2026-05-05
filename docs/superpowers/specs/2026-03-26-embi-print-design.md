@@ -1,7 +1,7 @@
 # embi_print — Custom Embroidery Web Service Design
 
 **Date:** 2026-03-26
-**Status:** Approved
+**Status:** Approved (with 2026-05-05 amendments — see bottom)
 
 ---
 
@@ -216,3 +216,82 @@ External (no Docker):
 - Multiple garment types
 - Multiple logo placements per order
 - Bulk / corporate ordering
+
+---
+
+## 2026-05-05 Amendments
+
+After a brainstorming review of the original 13-task implementation plan, the following structural changes were adopted. The full revised plan lives in [`docs/superpowers/plans/2026-05-05-embi-print-revised.md`](../plans/2026-05-05-embi-print-revised.md).
+
+### A1. Drop Celery + Redis from v1
+
+**Original:** DST conversion runs as a Celery task, with Redis as the broker.
+**Revised:** DST conversion runs **synchronously inside `POST /uploads`** with a 10-second timeout. On timeout/failure, the upload is still accepted (`status=failed`, `stitch_count=NULL`); the customizer UI surfaces "stitch-count estimate unavailable" without blocking checkout.
+**Why:** Printful performs its own embroidery conversion. `convert.py` only produces a cosmetic stitch-count estimate. Running an entire broker + worker container for that is infrastructure debt with no v1 user value. Re-introduce in v2 if direct fulfillment replaces Printful.
+
+### A2. Mockup placement coordinates: pixel → percentage
+
+**Original:** `placement_zones.position_on_mockup = { x, y, w, h }` in pixels.
+**Revised:** `placement_zones.position_on_mockup = { x_pct, y_pct, w_pct, h_pct }` as floats in `[0, 1]`.
+**Why:** Pixel coords are brittle to mockup re-rendering at any size other than the original. Percentages work at any canvas size on any device.
+
+### A3. Add `product_variants` table
+
+**Original:** `products.colors` and `products.sizes` are JSON columns on `products`.
+**Revised:** New table:
+
+```
+product_variants
+  id, product_id (FK), color, size,
+  printful_variant_id (NOT NULL),
+  price_delta (NUMERIC(10,2), default 0),
+  UNIQUE(product_id, color, size)
+```
+
+`OrderItem` references `variant_id` instead of `(color, size)` strings.
+**Why:** Printful fulfillment requires `(catalog_product_id, variant_id)` per (color, size). Without this mapping, Phase 2 cannot submit orders. Also enables FK integrity and per-variant pricing.
+
+### A4. Mockup images: static PNGs
+
+**Original:** Unspecified — `colors[].mockup_images.{zone}` URLs were stored but no source named.
+**Revised:** Ship hand-curated PNGs at `frontend/public/mockups/{color}/{view}.png` (where `view` is `front` or `back`; the four chest zones share the front mockup, full back uses the back). Printful Mockup Generator API integration deferred to v2.
+**Why:** v1 ships without an external API dependency for mockups. 4 files (white/black × front/back) is trivial.
+
+### A5. Webhook idempotency
+
+**Original:** Spec didn't enforce uniqueness on payment/order identifiers.
+**Revised:**
+
+- `orders.stripe_payment_intent_id` is `UNIQUE` (nullable-unique).
+- `orders.printful_order_id` is `UNIQUE` (nullable-unique).
+- Stripe webhook handler is idempotent: if the order is already past `pending`, return 200 without state change.
+
+**Why:** Stripe webhooks are at-least-once. Without uniqueness + idempotent transitions, a retried webhook can double-submit to Printful or double-send the confirmation email.
+
+### A6. Decouple Printful submission from Stripe webhook
+
+**Original:** Stripe webhook calls Printful synchronously (Customer Flow step 4b).
+**Revised:** Stripe webhook marks the order `paid`, then enqueues a **FastAPI BackgroundTask** that calls Printful with `idempotency_key=order.id`. If Printful is down, the webhook still returns 200 (Stripe won't retry); a separate retry job picks it up.
+**Why:** A 5xx from the webhook causes Stripe to retry; if the prior call already submitted to Printful, you get duplicate orders. Decoupling + idempotency keys solves both.
+
+### A7. Rate-limiting on uploads
+
+**Original:** None.
+**Revised:** `slowapi` limiter on `POST /uploads` at `10/minute` per IP.
+**Why:** Open S3 write endpoint is a storage-abuse vector.
+
+### A8. CI gate
+
+**Original:** None mentioned.
+**Revised:** GitHub Actions workflow blocking merge to `main`: backend (`pytest`, `ruff`, `mypy`, `alembic upgrade head`), frontend (`tsc --noEmit`, `next build`, `playwright test`).
+**Why:** Last manual commit was literally `sjkfs` — quality slipped. Automated gate prevents that.
+
+### A9. Customer Flow correction (step 4)
+
+The original Customer Flow step 4 says "FastAPI stores to S3, enqueues DST conversion job → Celery: runs convert.py pipeline → stores DST to S3, updates stitch count". Under A1, this becomes:
+
+> Upload logo (PNG, JPG, SVG — max 10MB)
+> → FastAPI stores to S3, runs `convert.py` inline (10s timeout), stores DST to S3 + stitch count
+> → On timeout/failure: upload is still accepted; UI shows "stitch-count estimate unavailable"
+
+(MIME type `application/pdf` was in the original implementation but is removed — Printful does not accept PDF, and the convert pipeline doesn't handle it cleanly.)
