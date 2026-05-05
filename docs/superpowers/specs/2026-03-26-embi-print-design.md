@@ -154,7 +154,7 @@ Two-panel layout on the product page:
 3. Logo upload (drag & drop, shows conversion status)
 4. Size selector (S / M / L / XL / XXL)
 5. Price breakdown (base + zone add-on = total)
-6. "Proceed to Checkout" button (enabled once upload completes)
+6. "Proceed to Checkout" button (enabled once image is stored in S3 — DST conversion runs in background and stitch count appears when ready, but does not block checkout)
 
 ---
 

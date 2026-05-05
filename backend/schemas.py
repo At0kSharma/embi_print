@@ -21,3 +21,11 @@ class ProductOut(BaseModel):
     zones: list[PlacementZoneOut]
 
     model_config = {"from_attributes": True}
+
+class UploadOut(BaseModel):
+    id: str
+    status: str
+    stitch_count: int | None
+    original_filename: str
+
+    model_config = {"from_attributes": True}
