@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -9,7 +11,14 @@ from main import app
 from models import PlacementZone, Product, ProductVariant
 from ratelimit import limiter
 
-TEST_DATABASE_URL = "postgresql://embi:embi@postgres:5432/embi_test"
+# In docker-compose dev the test DB is reachable at host `postgres` (the
+# service name). In CI it's at `localhost`. TEST_DATABASE_URL overrides
+# both; the default keeps `docker compose exec fastapi pytest` working
+# without extra env setup.
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "postgresql://embi:embi@postgres:5432/embi_test",
+)
 
 test_engine = create_engine(TEST_DATABASE_URL)
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)

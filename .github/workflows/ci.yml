@@ -24,6 +24,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://embi:embi@localhost:5432/embi
+      TEST_DATABASE_URL: postgresql://embi:embi@localhost:5432/embi_test
       AWS_S3_BUCKET: embi-print-test
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
