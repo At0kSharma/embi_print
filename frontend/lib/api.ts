@@ -10,8 +10,14 @@ import type {
   Upload,
 } from "./types";
 
+// Server Components run inside the Next.js container, where `localhost:8000`
+// points at itself rather than at fastapi. Use INTERNAL_API_URL (server-side
+// only — not prefixed `NEXT_PUBLIC_`, so it's never sent to the browser);
+// fall back to NEXT_PUBLIC_API_URL for browser-side calls.
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
 class ApiError extends Error {
   constructor(public status: number, public detail: string) {
