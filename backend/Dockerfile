@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     python3-wheel \
     imagemagick \
     potrace \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

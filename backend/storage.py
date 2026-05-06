@@ -2,12 +2,25 @@ import os
 import uuid
 
 import boto3
+from botocore.config import Config
+
+# AWS_S3_ENDPOINT_URL is set in dev to point at MinIO and left unset in
+# production so boto3 talks to real S3. MinIO requires path-style
+# addressing; real S3 accepts it too.
+_endpoint = os.getenv("AWS_S3_ENDPOINT_URL") or None
+_client_config = (
+    Config(signature_version="s3v4", s3={"addressing_style": "path"})
+    if _endpoint
+    else None
+)
 
 s3 = boto3.client(
     "s3",
+    endpoint_url=_endpoint,
     region_name=os.getenv("AWS_REGION", "us-east-1"),
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    config=_client_config,
 )
 BUCKET = os.getenv("AWS_S3_BUCKET", "embi-print")
 
