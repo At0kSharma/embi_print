@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+import database
 from database import Base, get_db
 from main import app
 from models import PlacementZone, Product, ProductVariant
@@ -25,6 +26,9 @@ def override_get_db():
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     Base.metadata.create_all(bind=test_engine)
+    # Background tasks (e.g. submit_to_printful) call database.SessionLocal()
+    # directly. Point that at the test session for the whole test run.
+    database.SessionLocal = TestSessionLocal
     yield
     Base.metadata.drop_all(bind=test_engine)
 
@@ -41,6 +45,20 @@ def reset_rate_limiter():
     """Clear in-memory rate-limit state between tests so 10/min limit is per-test."""
     limiter.reset()
     yield
+
+
+@pytest.fixture(autouse=True)
+def cleanup_mutable_tables():
+    """Truncate per-test mutable tables. Products/variants/zones are seeded once
+    and never mutated by tests; orders, order_items, and uploads are."""
+    yield
+    db = TestSessionLocal()
+    try:
+        for table in ("order_items", "orders", "uploads"):
+            db.execute(text(f"DELETE FROM {table}"))
+        db.commit()
+    finally:
+        db.close()
 
 
 @pytest.fixture(scope="session")

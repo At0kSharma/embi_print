@@ -117,3 +117,6 @@ class OrderItem(Base):
     quantity = Column(Integer, nullable=False, default=1)
     unit_price = Column(Numeric(10, 2), nullable=False)
     order = relationship("Order", back_populates="items")
+    variant = relationship("ProductVariant")
+    zone = relationship("PlacementZone")
+    upload = relationship("Upload")

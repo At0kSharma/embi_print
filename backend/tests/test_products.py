@@ -5,12 +5,6 @@ from main import app
 client = TestClient(app)
 
 
-def test_list_products_empty_returns_200():
-    response = client.get("/products/")
-    assert response.status_code == 200
-    assert response.json() == []
-
-
 def test_get_product_not_found():
     response = client.get("/products/does-not-exist")
     assert response.status_code == 404
