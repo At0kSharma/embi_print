@@ -34,6 +34,7 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - INTERNAL_API_URL=http://fastapi:8000
+      - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
     volumes:
       - ./frontend:/app
       - /app/node_modules
