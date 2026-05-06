@@ -4,14 +4,13 @@ Verifies that the server computes line totals from authoritative DB
 rows — clients cannot override prices. Also verifies referential
 validation.
 """
-from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 
 from main import app
-from models import Order, ProductVariant, PlacementZone, Upload, UploadStatus
+from models import PlacementZone, ProductVariant, Upload, UploadStatus
 from tests.conftest import TestSessionLocal
 
 

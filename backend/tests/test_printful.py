@@ -4,12 +4,11 @@ We don't hit the live API. These verify retry behavior and payload
 construction; the network call is patched.
 """
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import httpx
 import pytest
 
-from services import printful
 from services.printful import PrintfulError, submit_order
 
 

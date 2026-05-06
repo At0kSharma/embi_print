@@ -1,0 +1,39 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    "alembic",
+    ".venv",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (line-length above is advisory)
+    "B008",  # FastAPI `Depends` defaults trigger this
+    "E731",  # don't ban lambdas in test helpers
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+# SQLAlchemy 2.0 ORM Column types produce ~20 false positives in the
+# routers without the SQLAlchemy mypy plugin. We exclude routers/ for
+# now and rely on pytest to cover ORM-shaped code; v2 should adopt the
+# typed Mapped[X] declarative form and re-enable.
+exclude = "(alembic/|tests/|routers/|generate_mockups\\.py)"
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "main"
+disable_error_code = ["arg-type"]

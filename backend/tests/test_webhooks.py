@@ -5,8 +5,6 @@ need real signing. Idempotency is the most important property here:
 re-delivering the same `payment_intent.succeeded` event must not call
 Printful twice or transition the order back to `paid`.
 """
-import json
-import os
 from unittest.mock import patch
 
 import pytest
@@ -102,7 +100,7 @@ def test_stripe_webhook_marks_paid_and_submits(client, seeded_client):
 
 def test_stripe_webhook_idempotent_replay(client, seeded_client):
     """Same event delivered twice ⇒ Printful called once."""
-    order_id = _seed_paid_intent_order("pi_bbb")
+    _seed_paid_intent_order("pi_bbb")
     with (
         patch("routers.webhooks.construct_event", return_value=_stripe_event("pi_bbb")),
         patch("routers.webhooks.printful_submit", return_value="pf_replay") as pf,

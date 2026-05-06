@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field, conint
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class PlacementZoneOut(BaseModel):
@@ -55,7 +56,7 @@ class OrderItemIn(BaseModel):
     variant_id: str
     zone_id: str
     upload_id: str
-    quantity: conint(ge=1, le=100) = 1
+    quantity: Annotated[int, Field(ge=1, le=100)] = 1
 
 
 class OrderCreate(BaseModel):

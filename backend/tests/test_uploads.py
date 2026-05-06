@@ -17,8 +17,6 @@ from fastapi.testclient import TestClient
 
 from dst import DSTConversionError
 from main import app
-from models import Upload, UploadStatus
-from tests.conftest import TestSessionLocal
 
 
 @pytest.fixture

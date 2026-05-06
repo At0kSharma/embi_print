@@ -7,7 +7,6 @@ variants live in `product_variants` and are seeded here.
 from database import SessionLocal
 from models import PlacementZone, Product, ProductVariant
 
-
 # Placeholder Printful catalog variant IDs. Replace with real values
 # from https://www.printful.com/api/products once the Printful account
 # is provisioned (see Phase 0 open question #2 in the revised plan).

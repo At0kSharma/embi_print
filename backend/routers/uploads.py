@@ -1,10 +1,10 @@
 import logging
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from database import get_db
-from dst import convert_to_dst, DSTConversionError
+from dst import DSTConversionError, convert_to_dst
 from models import Upload, UploadStatus
 from ratelimit import limiter
 from schemas import UploadOut

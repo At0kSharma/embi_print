@@ -11,9 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from svgpathtools import svg2paths
-from pyembroidery import EmbPattern, STITCH, TRIM
 from PIL import Image
+from pyembroidery import STITCH, TRIM, EmbPattern
+from svgpathtools import svg2paths
 
 
 def _run(cmd):

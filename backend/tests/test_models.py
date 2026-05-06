@@ -1,6 +1,7 @@
-import pytest
-from sqlalchemy import create_engine, inspect
 import os
+
+from sqlalchemy import create_engine, inspect
+
 
 def test_all_tables_exist():
     engine = create_engine(os.getenv("DATABASE_URL", "postgresql://embi:embi@postgres:5432/embi"))

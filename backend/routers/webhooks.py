@@ -14,7 +14,8 @@ import database
 from database import get_db
 from models import Order, OrderItem, OrderStatus
 from services.email import send_order_confirmation, send_shipped_notification
-from services.printful import PrintfulError, submit_order as printful_submit
+from services.printful import PrintfulError
+from services.printful import submit_order as printful_submit
 from services.stripe_service import StripeSignatureError, construct_event
 from storage import get_presigned_url
 
@@ -40,7 +41,7 @@ async def stripe_webhook(
     try:
         event = construct_event(payload, stripe_signature, secret)
     except StripeSignatureError as e:
-        raise HTTPException(400, f"Bad signature: {e}")
+        raise HTTPException(400, f"Bad signature: {e}") from e
 
     if event["type"] != "payment_intent.succeeded":
         return {"received": True, "ignored": event["type"]}

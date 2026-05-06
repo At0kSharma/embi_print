@@ -1,6 +1,7 @@
-import boto3
 import os
 import uuid
+
+import boto3
 
 s3 = boto3.client(
     "s3",

@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from main import app
-from models import Order, OrderStatus, ProductVariant, PlacementZone, Upload, UploadStatus
+from models import Order, OrderStatus, PlacementZone, ProductVariant, Upload, UploadStatus
 from tests.conftest import TestSessionLocal
 
 

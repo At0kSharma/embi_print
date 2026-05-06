@@ -5,6 +5,7 @@ import os
 from decimal import Decimal
 
 import stripe
+from stripe import SignatureVerificationError
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
@@ -35,5 +36,5 @@ def construct_event(payload: bytes, sig_header: str, secret: str) -> dict:
     """Verify webhook signature and parse the event. Raises on bad signature."""
     try:
         return stripe.Webhook.construct_event(payload, sig_header, secret)
-    except (ValueError, stripe.error.SignatureVerificationError) as e:
+    except (ValueError, SignatureVerificationError) as e:
         raise StripeSignatureError(str(e)) from e
