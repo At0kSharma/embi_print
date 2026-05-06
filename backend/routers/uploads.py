@@ -1,18 +1,27 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Upload, UploadStatus
-from schemas import UploadOut
-from storage import upload_file
-from worker import run_dst_conversion
+import logging
 
-ALLOWED_TYPES = {"image/png", "image/jpeg", "image/svg+xml", "application/pdf"}
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from database import get_db
+from dst import convert_to_dst, DSTConversionError
+from models import Upload, UploadStatus
+from ratelimit import limiter
+from schemas import UploadOut
+from storage import upload_bytes, upload_file
+
+log = logging.getLogger(__name__)
+
+ALLOWED_TYPES = {"image/png", "image/jpeg", "image/svg+xml"}
 MAX_BYTES = 10 * 1024 * 1024  # 10MB
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
+
 @router.post("/", response_model=UploadOut, status_code=201)
+@limiter.limit("10/minute")
 async def create_upload(
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
@@ -27,14 +36,27 @@ async def create_upload(
         s3_key=s3_key,
         original_filename=file.filename,
         mime_type=file.content_type,
-        status=UploadStatus.pending,
+        status=UploadStatus.processing,
     )
     db.add(upload)
     db.commit()
     db.refresh(upload)
 
-    run_dst_conversion.delay(upload.id)
+    try:
+        dst_bytes, stitch_count = convert_to_dst(data, file.content_type)
+        dst_key = f"dst/{upload.id}.dst"
+        upload_bytes(dst_bytes, dst_key, "application/octet-stream")
+        upload.dst_s3_key = dst_key
+        upload.stitch_count = stitch_count
+        upload.status = UploadStatus.done
+    except DSTConversionError as e:
+        log.warning("DST conversion failed for upload %s: %s", upload.id, e)
+        upload.status = UploadStatus.failed
+
+    db.commit()
+    db.refresh(upload)
     return upload
+
 
 @router.get("/{upload_id}", response_model=UploadOut)
 def get_upload(upload_id: str, db: Session = Depends(get_db)):

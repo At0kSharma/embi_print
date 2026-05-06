@@ -22,6 +22,17 @@ def upload_file(file_bytes: bytes, filename: str, content_type: str) -> str:
     )
     return key
 
+
+def upload_bytes(file_bytes: bytes, key: str, content_type: str) -> str:
+    """Upload raw bytes to a specific S3 key. Used for derived artifacts (DST)."""
+    s3.put_object(
+        Bucket=BUCKET,
+        Key=key,
+        Body=file_bytes,
+        ContentType=content_type,
+    )
+    return key
+
 def get_presigned_url(key: str, expires: int = 3600) -> str:
     """Return a temporary URL for a private S3 object."""
     return s3.generate_presigned_url(
