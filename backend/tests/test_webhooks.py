@@ -182,14 +182,47 @@ def test_printful_webhook_marks_shipped(client, seeded_client):
         "type": "package_shipped",
         "data": {"order": {"id": "pf_111"}, "shipment": {"tracking_number": "TRACK123"}},
     }
-    resp = client.post("/webhooks/printful", json=body)
+    with patch("routers.webhooks.send_shipped_notification") as ship_email:
+        resp = client.post("/webhooks/printful", json=body)
     assert resp.status_code == 200
+    ship_email.assert_called_once()
 
     db = TestSessionLocal()
     try:
         order = db.query(Order).filter(Order.id == order_id).first()
         assert order.status == OrderStatus.shipped
         assert order.tracking_number == "TRACK123"
+    finally:
+        db.close()
+
+
+def test_printful_webhook_email_failure_does_not_500(client, seeded_client):
+    """An email-send failure must not roll back the shipped status."""
+    order_id = _seed_paid_intent_order("pi_email_fail")
+    db = TestSessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        order.status = OrderStatus.submitted_to_printful
+        order.printful_order_id = "pf_emfail"
+        db.commit()
+    finally:
+        db.close()
+
+    body = {
+        "type": "package_shipped",
+        "data": {"order": {"id": "pf_emfail"}, "shipment": {"tracking_number": "T9"}},
+    }
+    with patch(
+        "routers.webhooks.send_shipped_notification",
+        side_effect=RuntimeError("smtp dead"),
+    ):
+        resp = client.post("/webhooks/printful", json=body)
+    assert resp.status_code == 200
+    db = TestSessionLocal()
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        assert order.status == OrderStatus.shipped
+        assert order.tracking_number == "T9"
     finally:
         db.close()
 

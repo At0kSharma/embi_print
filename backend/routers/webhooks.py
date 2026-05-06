@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, selectinload
 import database
 from database import get_db
 from models import Order, OrderItem, OrderStatus
-from services.email import send_order_confirmation
+from services.email import send_order_confirmation, send_shipped_notification
 from services.printful import PrintfulError, submit_order as printful_submit
 from services.stripe_service import StripeSignatureError, construct_event
 from storage import get_presigned_url
@@ -102,6 +102,13 @@ async def printful_webhook(request: Request, db: Session = Depends(get_db)):
     if tracking:
         order.tracking_number = tracking
     db.commit()
+    db.refresh(order)
+
+    try:
+        send_shipped_notification(order)
+    except Exception as e:
+        log.error("Shipped notification email failed for %s: %s", order.id, e)
+
     return {"received": True}
 
 
