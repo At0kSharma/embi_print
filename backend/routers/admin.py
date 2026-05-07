@@ -35,6 +35,7 @@ from schemas import (
     ProductUpdate,
     VariantCreate,
     ZoneCreate,
+    ZoneUpdate,
 )
 from storage import s3, BUCKET
 
@@ -192,6 +193,27 @@ def add_zone(
     db.add(zone)
     db.commit()
     return _load_product(db, product_id)
+
+
+@router.patch("/zones/{zone_id}", response_model=ProductOut)
+def update_zone(
+    zone_id: str, payload: ZoneUpdate, db: Session = Depends(get_db)
+):
+    zone = db.query(PlacementZone).filter_by(id=zone_id).first()
+    if not zone:
+        raise HTTPException(404, "Zone not found")
+    if payload.name is not None:
+        zone.name = payload.name
+    if payload.add_on_price is not None:
+        zone.add_on_price = Decimal(str(payload.add_on_price))
+    if payload.max_width_mm is not None:
+        zone.max_width_mm = payload.max_width_mm
+    if payload.max_height_mm is not None:
+        zone.max_height_mm = payload.max_height_mm
+    if payload.position_on_mockup is not None:
+        zone.position_on_mockup = payload.position_on_mockup.model_dump()
+    db.commit()
+    return _load_product(db, zone.product_id)
 
 
 @router.delete("/zones/{zone_id}", status_code=204)

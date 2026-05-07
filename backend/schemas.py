@@ -144,6 +144,14 @@ class ZoneCreate(BaseModel):
     position_on_mockup: ZonePosition
 
 
+class ZoneUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=40)
+    add_on_price: float | None = Field(None, ge=0)
+    max_width_mm: int | None = Field(None, gt=0, le=1000)
+    max_height_mm: int | None = Field(None, gt=0, le=1000)
+    position_on_mockup: ZonePosition | None = None
+
+
 class AdminOrderOut(BaseModel):
     id: str
     status: str

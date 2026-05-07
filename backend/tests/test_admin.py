@@ -245,6 +245,85 @@ def test_add_zone(client, auth, seeded_client):
     assert body["zones"][0]["name"] == "front"
 
 
+def test_update_zone_position(client, auth, seeded_client):
+    create = client.post(
+        "/admin/products",
+        auth=auth,
+        json={
+            "slug": "zone-update",
+            "name": "Zone update",
+            "type": "shirt",
+            "print_method": "embroidery",
+            "base_price": 10.0,
+        },
+    )
+    pid = create.json()["id"]
+    after_zone = client.post(
+        f"/admin/products/{pid}/zones",
+        auth=auth,
+        json={
+            "name": "front",
+            "add_on_price": 5.0,
+            "max_width_mm": 100,
+            "max_height_mm": 100,
+            "position_on_mockup": {"x_pct": 0.1, "y_pct": 0.1, "w_pct": 0.2, "h_pct": 0.2},
+        },
+    )
+    zone_id = after_zone.json()["zones"][0]["id"]
+
+    resp = client.patch(
+        f"/admin/zones/{zone_id}",
+        auth=auth,
+        json={
+            "position_on_mockup": {"x_pct": 0.4, "y_pct": 0.5, "w_pct": 0.3, "h_pct": 0.25},
+            "add_on_price": 12.5,
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    z = next(z for z in body["zones"] if z["id"] == zone_id)
+    assert z["position_on_mockup"]["x_pct"] == 0.4
+    assert z["position_on_mockup"]["w_pct"] == 0.3
+    assert z["add_on_price"] == 12.5
+    # name unchanged because not in payload
+    assert z["name"] == "front"
+
+
+def test_update_zone_validates_bounds(client, auth, seeded_client):
+    """Position values outside [0,1] are rejected at the schema layer."""
+    create = client.post(
+        "/admin/products",
+        auth=auth,
+        json={
+            "slug": "zone-update-bounds",
+            "name": "Bounds",
+            "type": "shirt",
+            "print_method": "embroidery",
+            "base_price": 10.0,
+        },
+    )
+    pid = create.json()["id"]
+    after_zone = client.post(
+        f"/admin/products/{pid}/zones",
+        auth=auth,
+        json={
+            "name": "front",
+            "add_on_price": 1.0,
+            "max_width_mm": 100,
+            "max_height_mm": 100,
+            "position_on_mockup": {"x_pct": 0.1, "y_pct": 0.1, "w_pct": 0.2, "h_pct": 0.2},
+        },
+    )
+    zone_id = after_zone.json()["zones"][0]["id"]
+
+    resp = client.patch(
+        f"/admin/zones/{zone_id}",
+        auth=auth,
+        json={"position_on_mockup": {"x_pct": -0.1, "y_pct": 0.1, "w_pct": 0.2, "h_pct": 0.2}},
+    )
+    assert resp.status_code == 422
+
+
 def test_add_zone_validates_position_bounds(client, auth, seeded_client):
     create = client.post(
         "/admin/products",

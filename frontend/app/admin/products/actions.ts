@@ -80,6 +80,22 @@ export async function addZoneAction(
   return product;
 }
 
+export async function updateZoneAction(
+  productId: string,
+  zoneId: string,
+  input: Partial<{
+    name: string;
+    add_on_price: number;
+    max_width_mm: number;
+    max_height_mm: number;
+    position_on_mockup: { x_pct: number; y_pct: number; w_pct: number; h_pct: number };
+  }>,
+): Promise<Product> {
+  const product = await adminApi.updateZone(zoneId, input);
+  revalidatePath(`/admin/products/${productId}`);
+  return product;
+}
+
 export async function deleteZoneAction(
   productId: string,
   zoneId: string,

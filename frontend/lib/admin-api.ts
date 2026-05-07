@@ -135,6 +135,21 @@ export const adminApi = {
       body: JSON.stringify(payload),
     });
   },
+  updateZone(
+    id: string,
+    payload: Partial<{
+      name: string;
+      add_on_price: number;
+      max_width_mm: number;
+      max_height_mm: number;
+      position_on_mockup: { x_pct: number; y_pct: number; w_pct: number; h_pct: number };
+    }>,
+  ): Promise<Product> {
+    return request<Product>(`/admin/zones/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
   deleteZone(id: string): Promise<void> {
     return request<void>(`/admin/zones/${id}`, { method: "DELETE" });
   },

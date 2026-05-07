@@ -1,10 +1,12 @@
 "use client";
 
-import { ExternalLink, Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
+import { ExternalLink, Loader2, Pencil, Plus, Save, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+
+import { ZoneVisualEditor } from "./ZoneVisualEditor";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -294,6 +296,7 @@ function ZonesCard({
   onChange: (p: Product) => void;
 }) {
   const [pending, startTransition] = useTransition();
+  const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [addOn, setAddOn] = useState("0");
   const [maxW, setMaxW] = useState("100");
@@ -302,6 +305,11 @@ function ZonesCard({
   const [y, setY] = useState("0.30");
   const [w, setW] = useState("0.40");
   const [h, setH] = useState("0.40");
+
+  const editingZone =
+    editingZoneId != null
+      ? product.zones.find((z) => z.id === editingZoneId)
+      : null;
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -362,31 +370,61 @@ function ZonesCard({
           <ul className="mb-4 space-y-2">
             {product.zones.map((z) => (
               <li key={z.id} className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2 text-sm">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <code className="text-xs">{z.name}</code>
                   <span className="text-xs text-muted-foreground">
                     +${z.add_on_price.toFixed(2)} · {z.max_width_mm}×{z.max_height_mm}mm
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    box [{z.position_on_mockup.x_pct.toFixed(2)},{z.position_on_mockup.y_pct.toFixed(2)},
+                    [{z.position_on_mockup.x_pct.toFixed(2)},{z.position_on_mockup.y_pct.toFixed(2)},
                     {z.position_on_mockup.w_pct.toFixed(2)},{z.position_on_mockup.h_pct.toFixed(2)}]
                   </span>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleDelete(z.id)}
-                  disabled={pending}
-                  aria-label="Delete zone"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() =>
+                      setEditingZoneId((curr) => (curr === z.id ? null : z.id))
+                    }
+                    aria-label="Edit zone visually"
+                  >
+                    <Pencil className="mr-1 h-3.5 w-3.5" />
+                    {editingZoneId === z.id ? "Close" : "Edit"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleDelete(z.id)}
+                    disabled={pending}
+                    aria-label="Delete zone"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
         )}
+
+        {editingZone && (
+          <div className="mb-4">
+            <ZoneVisualEditor
+              product={product}
+              zone={editingZone}
+              onSaved={(updated) => {
+                onChange(updated);
+                setEditingZoneId(null);
+              }}
+              onClose={() => setEditingZoneId(null)}
+            />
+          </div>
+        )}
+
         <form onSubmit={handleAdd} className="space-y-3">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr]">
             <Input placeholder="Name (e.g. left_chest)" value={name} onChange={(e) => setName(e.target.value)} required className="font-mono text-sm" />
