@@ -1,6 +1,8 @@
 import { Boxes, Package, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 export default function AdminLayout({
   children,
 }: {
@@ -39,6 +41,7 @@ export default function AdminLayout({
             >
               <Package className="h-4 w-4" /> Storefront
             </Link>
+            <ThemeToggle />
           </nav>
         </div>
       </header>

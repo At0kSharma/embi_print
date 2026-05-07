@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 import { CartButton } from "@/components/cart/CartButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Props {
   back?: { href: string; label: string };
@@ -29,16 +30,17 @@ export function SiteHeader({ back }: Props) {
           </Link>
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {back && (
             <Link
               href="/"
-              className="hidden items-center gap-2 text-sm font-semibold tracking-tight md:inline-flex"
+              className="mr-2 hidden items-center gap-2 text-sm font-semibold tracking-tight md:inline-flex"
             >
               <span className="inline-block h-4 w-4 rounded-sm bg-primary" />
               embi_print
             </Link>
           )}
+          <ThemeToggle />
           <CartButton />
         </div>
       </div>
