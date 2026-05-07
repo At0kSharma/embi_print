@@ -147,7 +147,7 @@ export function LogoUploader({ onUploaded }: Props) {
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-md",
-            upload?.status === "done" && "bg-emerald-50 text-emerald-700",
+            upload?.status === "done" && "bg-primary/10 text-primary",
             upload?.status === "failed" && "bg-amber-50 text-amber-700",
             (busy || upload?.status === "processing") && "bg-muted text-foreground",
           )}

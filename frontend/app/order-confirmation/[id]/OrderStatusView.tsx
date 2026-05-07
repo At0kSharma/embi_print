@@ -83,7 +83,7 @@ export function OrderStatusView({ orderId }: { orderId: string }) {
     <div className="space-y-8">
       {/* Hero */}
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
           <PartyPopper className="h-3.5 w-3.5" />
           Thanks for your order
         </div>
@@ -146,7 +146,7 @@ export function OrderStatusView({ orderId }: { orderId: string }) {
                     className={cn(
                       "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background",
                       reached
-                        ? "bg-foreground text-background"
+                        ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground",
                     )}
                   >

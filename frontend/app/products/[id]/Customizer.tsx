@@ -175,10 +175,19 @@ function Section({
   title: string;
   children: React.ReactNode;
 }) {
+  // Split a leading "1." / "2." etc. from the rest so we can color it.
+  const m = /^(\d+\.)\s+(.*)$/.exec(title);
   return (
     <section>
       <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
-        {title}
+        {m ? (
+          <>
+            <span className="text-primary">{m[1]}</span>{" "}
+            <span>{m[2]}</span>
+          </>
+        ) : (
+          title
+        )}
       </h2>
       {children}
     </section>

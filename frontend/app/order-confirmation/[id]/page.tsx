@@ -19,7 +19,7 @@ export default function OrderConfirmationPage({
             All products
           </a>
           <a href="/" className="flex items-center gap-2 text-sm font-semibold">
-            <span className="inline-block h-4 w-4 rounded-sm bg-foreground" />
+            <span className="inline-block h-4 w-4 rounded-sm bg-primary" />
             embi_print
           </a>
         </div>
