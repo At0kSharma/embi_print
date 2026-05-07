@@ -1,14 +1,15 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Minus, Plus, ShoppingBag } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { LogoUploader } from "@/components/LogoUploader";
 import { MockupCanvas } from "@/components/MockupCanvas";
 import { PriceBreakdown } from "@/components/PriceBreakdown";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ZonePicker } from "@/components/ZonePicker";
+import { useCart } from "@/components/cart/CartProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,16 @@ import type { Product, Upload } from "@/lib/types";
 const PRINT_METHOD_LABEL: Record<string, string> = {
   embroidery: "Embroidered",
   dtg: "Direct-to-garment",
+};
+
+const ZONE_LABEL: Record<string, string> = {
+  left_chest: "Left chest",
+  center_chest: "Center chest",
+  right_chest: "Right chest",
+  full_back: "Full back",
+  front: "Front",
+  back: "Back",
+  hood: "Hood",
 };
 
 const FIRST = <T,>(xs: T[]): T => xs[0];
@@ -35,7 +46,7 @@ export function Customizer({ product }: { product: Product }) {
   const [upload, setUpload] = useState<Upload | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
 
-  const router = useRouter();
+  const cart = useCart();
 
   const variant = product.variants.find(
     (v) => v.color === color && v.size === size,
@@ -49,18 +60,27 @@ export function Customizer({ product }: { product: Product }) {
 
   const currentMockupSrc = mockupSrc(product, color, zone);
 
-  const canCheckout = upload != null && variant != null && zone != null;
+  const canAdd = upload != null && variant != null && zone != null && breakdown != null;
 
-  const proceedToCheckout = () => {
-    if (!canCheckout) return;
-    const params = new URLSearchParams({
+  const handleAddToCart = () => {
+    if (!canAdd) return;
+    cart.addItem({
       product_id: product.id,
       variant_id: variant.id,
       zone_id: zone.id,
       upload_id: upload.id,
-      quantity: String(quantity),
+      quantity,
+      product_slug: product.slug,
+      product_name: product.name,
+      color,
+      size,
+      zone_label: ZONE_LABEL[zone.name] ?? zone.name,
+      unit_price: breakdown.unit,
     });
-    router.push(`/checkout?${params.toString()}`);
+    toast.success("Added to cart", {
+      description: `${product.name} · ${color} · ${size}`,
+    });
+    cart.open();
   };
 
   return (
@@ -175,10 +195,17 @@ export function Customizer({ product }: { product: Product }) {
           type="button"
           size="lg"
           className="w-full"
-          disabled={!canCheckout}
-          onClick={proceedToCheckout}
+          disabled={!canAdd}
+          onClick={handleAddToCart}
         >
-          {canCheckout ? "Proceed to checkout" : "Upload a logo to continue"}
+          {canAdd ? (
+            <>
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Add to cart
+            </>
+          ) : (
+            "Upload a logo to continue"
+          )}
         </Button>
       </div>
     </div>

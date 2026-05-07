@@ -1,6 +1,7 @@
 import { Sparkles } from "lucide-react";
 
 import { CatalogShell } from "@/components/CatalogShell";
+import { SiteHeader } from "@/components/SiteHeader";
 import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
@@ -19,7 +20,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-svh">
       <SiteHeader />
-
       <main className="container max-w-6xl py-12 md:py-20">
         {/* Hero */}
         <section className="mb-12 max-w-3xl">
@@ -55,33 +55,6 @@ export default async function HomePage() {
 
       <SiteFooter />
     </div>
-  );
-}
-
-function SiteHeader() {
-  return (
-    <header className="border-b">
-      <div className="container flex h-14 max-w-6xl items-center justify-between">
-        <a
-          href="/"
-          className="flex items-center gap-2 text-base font-semibold tracking-tight"
-        >
-          <span className="inline-block h-5 w-5 rounded-sm bg-primary" />
-          embi_print
-        </a>
-        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#" className="hover:text-foreground">
-            How it works
-          </a>
-          <a href="#" className="hover:text-foreground">
-            Materials
-          </a>
-          <a href="#" className="hover:text-foreground">
-            Support
-          </a>
-        </nav>
-      </div>
-    </header>
   );
 }
 
