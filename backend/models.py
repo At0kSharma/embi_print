@@ -44,6 +44,9 @@ class Product(Base):
         Enum(PrintMethod), nullable=False, default=PrintMethod.embroidery
     )
     base_price = Column(Numeric(10, 2), nullable=False)
+    # Admin-uploaded mockup image URLs, keyed by color and view.
+    # When NULL the frontend falls back to the public-folder convention.
+    mockups = Column(JSON, nullable=True)
     zones = relationship("PlacementZone", back_populates="product")
     variants = relationship("ProductVariant", back_populates="product")
 

@@ -31,6 +31,7 @@ class ProductOut(BaseModel):
     description: str | None = None
     print_method: str
     base_price: float
+    mockups: dict[str, dict[str, str]] | None = None
     zones: list[PlacementZoneOut]
     variants: list[ProductVariantOut]
 
@@ -96,3 +97,57 @@ class OrderOut(BaseModel):
 class PaymentIntentOut(BaseModel):
     client_secret: str
     payment_intent_id: str
+
+
+# ── Admin schemas ────────────────────────────────────────────────
+
+
+class ProductCreate(BaseModel):
+    slug: str = Field(..., min_length=1, max_length=80, pattern=r"^[a-z0-9][a-z0-9-]*$")
+    name: str = Field(..., min_length=1, max_length=200)
+    type: str = Field(..., min_length=1, max_length=40)
+    description: str | None = Field(None, max_length=2000)
+    print_method: str = Field(..., pattern=r"^(embroidery|dtg)$")
+    base_price: float = Field(..., ge=0)
+
+
+class ProductUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=200)
+    type: str | None = Field(None, min_length=1, max_length=40)
+    description: str | None = Field(None, max_length=2000)
+    print_method: str | None = Field(None, pattern=r"^(embroidery|dtg)$")
+    base_price: float | None = Field(None, ge=0)
+
+
+class VariantCreate(BaseModel):
+    color: str = Field(..., min_length=1, max_length=40)
+    size: str = Field(..., min_length=1, max_length=20)
+    printful_variant_id: str = Field(..., min_length=1, max_length=80)
+    price_delta: float = Field(0, ge=0)
+
+
+class ZonePosition(BaseModel):
+    x_pct: float = Field(..., ge=0, le=1)
+    y_pct: float = Field(..., ge=0, le=1)
+    w_pct: float = Field(..., gt=0, le=1)
+    h_pct: float = Field(..., gt=0, le=1)
+
+
+class ZoneCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=40)
+    add_on_price: float = Field(..., ge=0)
+    max_width_mm: int = Field(..., gt=0, le=1000)
+    max_height_mm: int = Field(..., gt=0, le=1000)
+    position_on_mockup: ZonePosition
+
+
+class AdminOrderOut(BaseModel):
+    id: str
+    status: str
+    customer_email: str
+    customer_name: str
+    total_price: float
+    created_at: str
+    item_count: int
+
+    model_config = {"from_attributes": True}

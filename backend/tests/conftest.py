@@ -58,13 +58,29 @@ def reset_rate_limiter():
 
 @pytest.fixture(autouse=True)
 def cleanup_mutable_tables():
-    """Truncate per-test mutable tables. Products/variants/zones are seeded once
-    and never mutated by tests; orders, order_items, and uploads are."""
+    """Truncate per-test mutable tables.
+
+    The seeded `classic-tee` product (and its variants + zones) is the
+    one durable fixture; everything else (orders, uploads, and any
+    products created by admin or other tests) gets wiped after each
+    test so the next test starts from a known state.
+    """
     yield
     db = TestSessionLocal()
     try:
         for table in ("order_items", "orders", "uploads"):
             db.execute(text(f"DELETE FROM {table}"))
+        # Drop ad-hoc products created during the test, but keep the
+        # seeded fixture row.
+        db.execute(text(
+            "DELETE FROM placement_zones WHERE product_id IN "
+            "(SELECT id FROM products WHERE slug != 'classic-tee')"
+        ))
+        db.execute(text(
+            "DELETE FROM product_variants WHERE product_id IN "
+            "(SELECT id FROM products WHERE slug != 'classic-tee')"
+        ))
+        db.execute(text("DELETE FROM products WHERE slug != 'classic-tee'"))
         db.commit()
     finally:
         db.close()

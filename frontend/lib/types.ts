@@ -35,6 +35,8 @@ export interface Product {
   description: string | null;
   print_method: PrintMethod;
   base_price: number;
+  /** Admin-uploaded mockup image URLs, keyed by color → view → URL. */
+  mockups?: Record<string, Record<string, string>> | null;
   zones: PlacementZone[];
   variants: ProductVariant[];
 }

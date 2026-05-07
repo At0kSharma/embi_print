@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from ratelimit import limiter
-from routers import orders, payments, products, uploads, webhooks
+from routers import admin, orders, payments, products, uploads, webhooks
 
 load_dotenv()
 
@@ -31,6 +31,7 @@ app.include_router(uploads.router)
 app.include_router(orders.router)
 app.include_router(payments.router)
 app.include_router(webhooks.router)
+app.include_router(admin.router)
 
 
 @app.get("/health")
