@@ -5,8 +5,11 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { Loader2, Lock, Package, ReceiptText } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import type { Order } from "@/lib/types";
 import { formatUSD } from "@/lib/pricing";
 
@@ -19,67 +22,102 @@ export function CheckoutForm({ order, onPaid }: Props) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
     setSubmitting(true);
-    setError(null);
 
     const { error: submitError } = await elements.submit();
     if (submitError) {
-      setError(submitError.message ?? "Card validation failed");
+      toast.error("Payment validation failed", {
+        description: submitError.message ?? "Please check your card details.",
+      });
       setSubmitting(false);
       return;
     }
 
     const { error: confirmError } = await stripe.confirmPayment({
       elements,
-      // The Stripe webhook drives the post-payment state machine. We just
-      // need the client to land somewhere user-friendly after the redirect
-      // round-trip (3DS, bank confirmation pages).
       confirmParams: {
         return_url: `${window.location.origin}/order-confirmation/${order.id}`,
       },
     });
 
     if (confirmError) {
-      setError(confirmError.message ?? "Payment failed");
+      toast.error("Payment failed", {
+        description: confirmError.message ?? "Please try again.",
+      });
       setSubmitting(false);
       return;
     }
-    // For non-redirect flows the promise resolves with no error and the
-    // browser stays on this page; navigate explicitly.
     onPaid();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-      <div className="rounded border border-neutral-200 bg-white p-4">
-        <PaymentElement />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="rounded-md border bg-card p-4">
+        <PaymentElement
+          options={{ layout: { type: "tabs", defaultCollapsed: false } }}
+        />
       </div>
 
-      <p className="text-sm text-neutral-600">
-        Total to charge:{" "}
-        <strong className="text-neutral-900">
-          {formatUSD(order.total_price)}
-        </strong>
-      </p>
+      {/* Trust strip */}
+      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+        <Trust icon={<Lock />} label="Secure payment" detail="Stripe-handled" />
+        <Trust
+          icon={<Package />}
+          label="Made to order"
+          detail="Ships in 5–7 days"
+        />
+        <Trust
+          icon={<ReceiptText />}
+          label="No hidden fees"
+          detail="Tax & shipping in"
+        />
+      </div>
 
-      {error && (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
-
-      <button
+      <Button
         type="submit"
+        size="lg"
         disabled={!stripe || submitting}
-        className="w-full rounded bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition disabled:bg-neutral-300"
+        className="w-full"
       >
-        {submitting ? "Processing…" : `Pay ${formatUSD(order.total_price)}`}
-      </button>
+        {submitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing…
+          </>
+        ) : (
+          <>Pay {formatUSD(order.total_price)}</>
+        )}
+      </Button>
+
+      <p className="text-center text-xs text-muted-foreground">
+        Powered by Stripe. Cancel any time before fabric is cut.
+      </p>
     </form>
+  );
+}
+
+function Trust({
+  icon,
+  label,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  detail: string;
+}) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-md border bg-card px-3 py-2.5">
+      <div className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="text-sm font-medium leading-tight">{label}</div>
+        <div className="text-xs text-muted-foreground">{detail}</div>
+      </div>
+    </div>
   );
 }

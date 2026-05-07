@@ -1,13 +1,23 @@
 "use client";
 
-import type { PlacementZone } from "@/lib/types";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatUSD } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
+import type { PlacementZone } from "@/lib/types";
 
-const ZONE_LABELS: Record<PlacementZone["name"], string> = {
-  left_chest: "Left Chest",
-  center_chest: "Center Chest",
-  right_chest: "Right Chest",
-  full_back: "Full Back",
+const ZONE_LABEL: Record<PlacementZone["name"], string> = {
+  left_chest: "Left chest",
+  center_chest: "Center chest",
+  right_chest: "Right chest",
+  full_back: "Full back",
+};
+
+const ZONE_DESCRIPTION: Record<PlacementZone["name"], string> = {
+  left_chest: "Heart side · classic crest",
+  center_chest: "Front and centered",
+  right_chest: "Off-heart accent",
+  full_back: "Statement piece",
 };
 
 interface Props {
@@ -19,30 +29,45 @@ interface Props {
 export function ZonePicker({ zones, selectedZoneId, onSelect }: Props) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-neutral-700">Placement</p>
-      <div className="grid grid-cols-2 gap-2">
-        {zones.map((z) => (
-          <button
-            key={z.id}
-            type="button"
-            onClick={() => onSelect(z.id)}
-            className={`rounded border px-3 py-2 text-left text-sm transition ${
-              z.id === selectedZoneId
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 bg-white hover:border-neutral-500"
-            }`}
-          >
-            <div className="font-medium">{ZONE_LABELS[z.name] ?? z.name}</div>
-            <div
-              className={`text-xs ${
-                z.id === selectedZoneId ? "text-neutral-300" : "text-neutral-500"
-              }`}
+      <Label className="text-sm font-medium">Placement</Label>
+      <RadioGroup
+        value={selectedZoneId}
+        onValueChange={onSelect}
+        className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+      >
+        {zones.map((z) => {
+          const isSelected = z.id === selectedZoneId;
+          return (
+            <Label
+              key={z.id}
+              htmlFor={`zone-${z.id}`}
+              className={cn(
+                "relative flex cursor-pointer items-start justify-between gap-3 rounded-md border bg-card p-3 transition-all",
+                isSelected
+                  ? "border-foreground ring-1 ring-foreground"
+                  : "border-border hover:border-foreground/40",
+              )}
             >
-              +{formatUSD(z.add_on_price)}
-            </div>
-          </button>
-        ))}
-      </div>
+              <RadioGroupItem
+                id={`zone-${z.id}`}
+                value={z.id}
+                className="mt-0.5 shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium leading-tight">
+                  {ZONE_LABEL[z.name] ?? z.name}
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {ZONE_DESCRIPTION[z.name] ?? ""}
+                </div>
+              </div>
+              <span className="shrink-0 text-sm font-medium tabular-nums">
+                +{formatUSD(z.add_on_price)}
+              </span>
+            </Label>
+          );
+        })}
+      </RadioGroup>
     </div>
   );
 }

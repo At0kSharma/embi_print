@@ -1,9 +1,9 @@
+import { Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/ProductCard";
 import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
-// Always fetch fresh — products list rarely changes but we don't want
-// stale price data after a backend update.
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
@@ -17,29 +17,75 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">embi_print</h1>
-        <p className="mt-1 text-neutral-600">
-          Custom embroidery on demand — upload your logo, ships in days.
-        </p>
-      </header>
+    <div className="min-h-svh">
+      <SiteHeader />
 
-      {fetchError && (
-        <div className="mb-6 rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Couldn&apos;t reach the API: {fetchError}
-        </div>
-      )}
+      <main className="container max-w-6xl py-12 md:py-20">
+        {/* Hero */}
+        <section className="mb-14 max-w-3xl">
+          <Badge variant="secondary" className="mb-4 gap-1.5">
+            <Sparkles className="h-3 w-3" />
+            Made to order
+          </Badge>
+          <h1 className="text-balance text-4xl font-semibold tracking-tight md:text-5xl">
+            Custom embroidery, on demand.
+          </h1>
+          <p className="mt-4 max-w-xl text-pretty text-base text-muted-foreground md:text-lg">
+            Upload a logo, place it on a tee, see it stitched on a live
+            preview, and we&apos;ll ship it in a week. No minimums.
+          </p>
+        </section>
 
-      {products.length === 0 && !fetchError && (
-        <p className="text-neutral-600">No products yet. Run the seed script.</p>
-      )}
+        {fetchError && (
+          <div className="mb-8 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            Couldn&apos;t reach the API: {fetchError}
+          </div>
+        )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+        {products.length === 0 && !fetchError && (
+          <div className="rounded-md border border-dashed bg-muted/30 p-10 text-center text-sm text-muted-foreground">
+            No products yet. Run the seed script.
+          </div>
+        )}
+
+        {/* Grid */}
+        <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+function SiteHeader() {
+  return (
+    <header className="border-b">
+      <div className="container flex h-14 max-w-6xl items-center justify-between">
+        <a href="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <span className="inline-block h-5 w-5 rounded-sm bg-foreground" />
+          embi_print
+        </a>
+        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+          <a href="#" className="hover:text-foreground">How it works</a>
+          <a href="#" className="hover:text-foreground">Materials</a>
+          <a href="#" className="hover:text-foreground">Support</a>
+        </nav>
       </div>
-    </main>
+    </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="mt-16 border-t">
+      <div className="container flex max-w-6xl flex-col items-start justify-between gap-2 py-6 text-sm text-muted-foreground md:flex-row md:items-center">
+        <p>© {new Date().getFullYear()} embi_print. All threads reserved.</p>
+        <p className="text-xs">Hand-stitched. Shipped in days.</p>
+      </div>
+    </footer>
   );
 }

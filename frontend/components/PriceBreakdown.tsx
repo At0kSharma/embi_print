@@ -1,3 +1,4 @@
+import { Separator } from "@/components/ui/separator";
 import { formatUSD, type PriceBreakdown as Breakdown } from "@/lib/pricing";
 
 export function PriceBreakdown({
@@ -8,38 +9,33 @@ export function PriceBreakdown({
   quantity: number;
 }) {
   return (
-    <dl className="space-y-1 rounded border border-neutral-200 bg-neutral-50 p-4 text-sm">
-      <Row label="Base price" value={formatUSD(breakdown.base)} />
-      {breakdown.variantDelta !== 0 && (
-        <Row label="Variant" value={formatUSD(breakdown.variantDelta)} />
-      )}
-      <Row label="Placement" value={`+${formatUSD(breakdown.zoneAddOn)}`} />
-      {quantity > 1 && (
-        <Row label="Quantity" value={`× ${quantity}`} />
-      )}
-      <div className="my-1 border-t border-neutral-300" />
-      <Row
-        label="Total"
-        value={formatUSD(breakdown.total)}
-        emphasize
-      />
-    </dl>
+    <div className="rounded-md border bg-muted/30 p-4">
+      <dl className="space-y-2 text-sm">
+        <Row label="Garment" value={formatUSD(breakdown.base)} />
+        {breakdown.variantDelta !== 0 && (
+          <Row label="Variant" value={formatUSD(breakdown.variantDelta)} />
+        )}
+        <Row label="Embroidery" value={`+ ${formatUSD(breakdown.zoneAddOn)}`} />
+        {quantity > 1 && <Row label="Quantity" value={`× ${quantity}`} />}
+      </dl>
+
+      <Separator className="my-3" />
+
+      <div className="flex items-baseline justify-between text-base">
+        <dt className="font-semibold">Total</dt>
+        <dd className="text-lg font-semibold tabular-nums">
+          {formatUSD(breakdown.total)}
+        </dd>
+      </div>
+    </div>
   );
 }
 
-function Row({
-  label,
-  value,
-  emphasize,
-}: {
-  label: string;
-  value: string;
-  emphasize?: boolean;
-}) {
+function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between">
-      <dt className={emphasize ? "font-semibold" : "text-neutral-600"}>{label}</dt>
-      <dd className={emphasize ? "font-semibold" : ""}>{value}</dd>
+    <div className="flex items-baseline justify-between">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="tabular-nums">{value}</dd>
     </div>
   );
 }

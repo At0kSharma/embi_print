@@ -1,5 +1,13 @@
 "use client";
 
+import { Check } from "lucide-react";
+
+import { Label } from "@/components/ui/label";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import type { ProductVariant } from "@/lib/types";
 
 interface Props {
@@ -8,6 +16,13 @@ interface Props {
   selectedSize: string;
   onSelect: (color: string, size: string) => void;
 }
+
+const SWATCH_HEX: Record<string, string> = {
+  White: "#FFFFFF",
+  Black: "#111111",
+  Navy: "#1B2A4A",
+  Forest: "#1F4D3F",
+};
 
 export function VariantPicker({
   variants,
@@ -21,44 +36,73 @@ export function VariantPicker({
   );
 
   return (
-    <div className="space-y-4">
-      <div>
-        <p className="mb-2 text-sm font-medium text-neutral-700">Color</p>
-        <div className="flex gap-2">
-          {colors.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => onSelect(c, selectedSize)}
-              className={`rounded border px-4 py-2 text-sm transition ${
-                c === selectedColor
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 bg-white hover:border-neutral-500"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+    <div className="space-y-5">
+      {/* Color */}
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <Label className="text-sm font-medium">Color</Label>
+          <span className="text-xs text-muted-foreground">{selectedColor}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {colors.map((c) => {
+            const isSelected = c === selectedColor;
+            const hex = SWATCH_HEX[c] ?? "#888";
+            const isLight = hex.toUpperCase() === "#FFFFFF";
+            return (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={isSelected}
+                aria-label={c}
+                onClick={() => onSelect(c, selectedSize)}
+                className={cn(
+                  "relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-all",
+                  "ring-1 ring-border hover:ring-foreground/40",
+                  isSelected &&
+                    "ring-2 ring-foreground ring-offset-2 ring-offset-background",
+                )}
+                style={{ backgroundColor: hex }}
+              >
+                {isSelected && (
+                  <Check
+                    className={cn(
+                      "h-4 w-4",
+                      isLight ? "text-foreground" : "text-background",
+                    )}
+                    strokeWidth={2.5}
+                  />
+                )}
+                <span className="sr-only">{c}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
-      <div>
-        <p className="mb-2 text-sm font-medium text-neutral-700">Size</p>
-        <div className="flex gap-2">
+
+      {/* Size */}
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <Label className="text-sm font-medium">Size</Label>
+          <span className="text-xs text-muted-foreground">{selectedSize}</span>
+        </div>
+        <ToggleGroup
+          type="single"
+          value={selectedSize}
+          onValueChange={(v) => v && onSelect(selectedColor, v)}
+          className="flex flex-wrap justify-start gap-1.5"
+          variant="outline"
+        >
           {sizes.map((s) => (
-            <button
+            <ToggleGroupItem
               key={s}
-              type="button"
-              onClick={() => onSelect(selectedColor, s)}
-              className={`rounded border px-4 py-2 text-sm transition ${
-                s === selectedSize
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 bg-white hover:border-neutral-500"
-              }`}
+              value={s}
+              aria-label={`Size ${s}`}
+              className="h-10 min-w-[3rem] data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:hover:bg-foreground/90"
             >
               {s}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
     </div>
   );

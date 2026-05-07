@@ -1,3 +1,5 @@
+import { ChevronLeft } from "lucide-react";
+
 import { OrderStatusView } from "./OrderStatusView";
 
 export default function OrderConfirmationPage({
@@ -6,16 +8,26 @@ export default function OrderConfirmationPage({
   params: { id: string };
 }) {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <a href="/" className="text-sm text-neutral-500 hover:underline">
-        ← All products
-      </a>
-      <h1 className="mt-2 text-2xl font-bold tracking-tight">Order confirmed</h1>
-      <p className="mt-1 text-neutral-600">
-        We&apos;re working on it. This page updates as your order moves through
-        the pipeline.
-      </p>
-      <OrderStatusView orderId={params.id} />
-    </main>
+    <div className="min-h-svh">
+      <header className="border-b">
+        <div className="container flex h-14 max-w-6xl items-center justify-between">
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            All products
+          </a>
+          <a href="/" className="flex items-center gap-2 text-sm font-semibold">
+            <span className="inline-block h-4 w-4 rounded-sm bg-foreground" />
+            embi_print
+          </a>
+        </div>
+      </header>
+
+      <main className="container max-w-2xl py-12 md:py-16">
+        <OrderStatusView orderId={params.id} />
+      </main>
+    </div>
   );
 }

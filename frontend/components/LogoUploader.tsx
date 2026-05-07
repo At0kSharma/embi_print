@@ -1,25 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, FileImage, Loader2, RefreshCw, Upload } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { api, ApiError } from "@/lib/api";
-import type { Upload } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import type { Upload as UploadT } from "@/lib/types";
 
 interface Props {
-  onUploaded: (upload: Upload, localPreviewUrl: string) => void;
+  onUploaded: (upload: UploadT, localPreviewUrl: string) => void;
 }
 
 const ALLOWED = ["image/png", "image/jpeg", "image/svg+xml"];
+const MAX_BYTES = 10 * 1024 * 1024;
 
 export function LogoUploader({ onUploaded }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [upload, setUpload] = useState<Upload | null>(null);
+  const [upload, setUpload] = useState<UploadT | null>(null);
 
-  // Poll until DST conversion finishes (or fails). Server returns the
-  // final status synchronously today, but the polling stays so we tolerate
-  // any future shift back to async without changing the UI.
+  // Poll until DST conversion finishes (or fails).
   useEffect(() => {
     if (!upload || upload.status === "done" || upload.status === "failed") {
       return;
@@ -34,7 +38,6 @@ export function LogoUploader({ onUploaded }: Props) {
           setTimeout(tick, 1000);
         }
       } catch {
-        // Swallow transient errors; will retry next tick.
         if (!cancelled) setTimeout(tick, 2000);
       }
     };
@@ -46,13 +49,16 @@ export function LogoUploader({ onUploaded }: Props) {
   }, [upload]);
 
   const handleFile = async (file: File) => {
-    setError(null);
     if (!ALLOWED.includes(file.type)) {
-      setError(`Unsupported file type: ${file.type}`);
+      toast.error("Unsupported file type", {
+        description: "We accept PNG, JPG, and SVG files.",
+      });
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File exceeds 10MB limit");
+    if (file.size > MAX_BYTES) {
+      toast.error("File too large", {
+        description: "Logos must be under 10 MB.",
+      });
       return;
     }
     const localPreview = URL.createObjectURL(file);
@@ -61,17 +67,37 @@ export function LogoUploader({ onUploaded }: Props) {
       const u = await api.uploadLogo(file);
       setUpload(u);
       onUploaded(u, localPreview);
+      if (u.status === "done") {
+        toast.success("Logo uploaded", {
+          description: `Stitch estimate: ${u.stitch_count?.toLocaleString() ?? "—"}`,
+        });
+      }
     } catch (e) {
       const detail = e instanceof ApiError ? e.detail : String(e);
-      setError(`Upload failed: ${detail}`);
+      toast.error("Upload failed", { description: detail });
     } finally {
       setBusy(false);
     }
   };
 
-  return (
-    <div className="space-y-2">
+  const reset = () => {
+    setUpload(null);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  // ── Empty state ──
+  if (!upload && !busy) {
+    return (
       <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
@@ -83,18 +109,23 @@ export function LogoUploader({ onUploaded }: Props) {
           const f = e.dataTransfer.files[0];
           if (f) handleFile(f);
         }}
-        onClick={() => inputRef.current?.click()}
-        className={`flex h-32 cursor-pointer items-center justify-center rounded border-2 border-dashed text-center text-sm transition ${
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/30 px-6 py-10 text-center transition-all",
           dragOver
-            ? "border-neutral-900 bg-neutral-100"
-            : "border-neutral-300 hover:border-neutral-500"
-        }`}
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-foreground/40 hover:bg-muted/50",
+        )}
       >
-        {busy
-          ? "Uploading…"
-          : upload
-            ? `Selected: ${upload.original_filename}`
-            : "Drop a PNG / JPG / SVG (max 10MB), or click to choose"}
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-background shadow-sm ring-1 ring-border">
+          <Upload className="h-4 w-4" />
+        </div>
+        <p className="text-sm font-medium">
+          Drop your logo here, or{" "}
+          <span className="underline underline-offset-2">browse</span>
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          PNG, JPG, or SVG · max 10 MB
+        </p>
         <input
           ref={inputRef}
           type="file"
@@ -106,20 +137,75 @@ export function LogoUploader({ onUploaded }: Props) {
           }}
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {upload && upload.status === "done" && upload.stitch_count != null && (
-        <p className="text-sm text-neutral-600">
-          Estimated stitches: {upload.stitch_count.toLocaleString()}
-        </p>
+    );
+  }
+
+  // ── Busy / status state ──
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-md",
+            upload?.status === "done" && "bg-emerald-50 text-emerald-700",
+            upload?.status === "failed" && "bg-amber-50 text-amber-700",
+            (busy || upload?.status === "processing") && "bg-muted text-foreground",
+          )}
+        >
+          {busy || upload?.status === "processing" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : upload?.status === "done" ? (
+            <Check className="h-4 w-4" />
+          ) : upload?.status === "failed" ? (
+            <FileImage className="h-4 w-4" />
+          ) : (
+            <FileImage className="h-4 w-4" />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">
+            {upload?.original_filename ?? "Uploading…"}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {busy && "Uploading to server…"}
+            {upload?.status === "processing" && "Estimating stitch count…"}
+            {upload?.status === "done" &&
+              upload.stitch_count != null &&
+              `${upload.stitch_count.toLocaleString()} stitches estimated`}
+            {upload?.status === "failed" &&
+              "Stitch estimate unavailable · design will still print"}
+          </div>
+        </div>
+
+        {upload && !busy && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={reset}
+            aria-label="Replace logo"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {(busy || upload?.status === "processing") && (
+        <Progress value={busy ? 40 : 80} className="mt-3 h-1" />
       )}
-      {upload && upload.status === "processing" && (
-        <p className="text-sm text-neutral-500">Estimating stitch count…</p>
-      )}
-      {upload && upload.status === "failed" && (
-        <p className="text-sm text-amber-700">
-          Stitch-count estimate unavailable. Your design will still print.
-        </p>
-      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ALLOWED.join(",")}
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+        }}
+      />
     </div>
   );
 }
