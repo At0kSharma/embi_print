@@ -4,8 +4,17 @@ import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { primaryMockupSrc } from "@/lib/mockups";
 import { formatUSD } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
+
+const TYPE_LABEL: Record<string, string> = {
+  shirt: "T-Shirt",
+  hoodie: "Hoodie",
+  jacket: "Jacket",
+  cap: "Cap",
+  beanie: "Beanie",
+};
 
 export function ProductCard({ product }: { product: Product }) {
   const colorCount = new Set(product.variants.map((v) => v.color)).size;
@@ -16,15 +25,21 @@ export function ProductCard({ product }: { product: Product }) {
       <Card className="overflow-hidden border-border/60 transition-all duration-300 hover:border-foreground/30 hover:shadow-lg">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           <Image
-            src="/mockups/white/front.png"
+            src={primaryMockupSrc(product)}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-contain p-10 transition-transform duration-500 group-hover:scale-105"
           />
+          <div className="absolute left-3 top-3">
+            <Badge variant="secondary" className="rounded-full text-xs">
+              {TYPE_LABEL[product.type] ?? product.type}
+            </Badge>
+          </div>
           <div className="absolute right-3 top-3">
             <Badge variant="secondary" className="rounded-full text-xs">
-              {product.zones.length} placements
+              {product.zones.length}{" "}
+              {product.zones.length === 1 ? "placement" : "placements"}
             </Badge>
           </div>
         </div>

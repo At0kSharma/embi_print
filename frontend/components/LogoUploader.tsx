@@ -8,16 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { api, ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import type { Upload as UploadT } from "@/lib/types";
+import type { PrintMethod, Upload as UploadT } from "@/lib/types";
 
 interface Props {
   onUploaded: (upload: UploadT, localPreviewUrl: string) => void;
+  printMethod?: PrintMethod;
 }
 
 const ALLOWED = ["image/png", "image/jpeg", "image/svg+xml"];
 const MAX_BYTES = 10 * 1024 * 1024;
 
-export function LogoUploader({ onUploaded }: Props) {
+export function LogoUploader({ onUploaded, printMethod = "embroidery" }: Props) {
+  const showStitchCount = printMethod === "embroidery";
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -69,7 +71,9 @@ export function LogoUploader({ onUploaded }: Props) {
       onUploaded(u, localPreview);
       if (u.status === "done") {
         toast.success("Logo uploaded", {
-          description: `Stitch estimate: ${u.stitch_count?.toLocaleString() ?? "—"}`,
+          description: showStitchCount
+            ? `Stitch estimate: ${u.stitch_count?.toLocaleString() ?? "—"}`
+            : "Ready to print.",
         });
       }
     } catch (e) {
@@ -169,12 +173,16 @@ export function LogoUploader({ onUploaded }: Props) {
           </div>
           <div className="text-xs text-muted-foreground">
             {busy && "Uploading to server…"}
-            {upload?.status === "processing" && "Estimating stitch count…"}
+            {upload?.status === "processing" &&
+              (showStitchCount ? "Estimating stitch count…" : "Processing…")}
             {upload?.status === "done" &&
-              upload.stitch_count != null &&
-              `${upload.stitch_count.toLocaleString()} stitches estimated`}
+              (showStitchCount && upload.stitch_count != null
+                ? `${upload.stitch_count.toLocaleString()} stitches estimated`
+                : "Ready to print")}
             {upload?.status === "failed" &&
-              "Stitch estimate unavailable · design will still print"}
+              (showStitchCount
+                ? "Stitch estimate unavailable · design will still print"
+                : "Design will still print")}
           </div>
         </div>
 

@@ -2,9 +2,11 @@
 // errors only at the boundary, so a quick visual diff after changing
 // schemas.py is the cheapest discipline.
 
+// Zone names are open-ended at the backend (any string). Common values:
+// left_chest, center_chest, right_chest, full_back, front, back, hood.
 export interface PlacementZone {
   id: string;
-  name: "left_chest" | "center_chest" | "right_chest" | "full_back";
+  name: string;
   add_on_price: number;
   max_width_mm: number;
   max_height_mm: number;

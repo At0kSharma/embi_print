@@ -9,11 +9,18 @@ import { MockupCanvas } from "@/components/MockupCanvas";
 import { PriceBreakdown } from "@/components/PriceBreakdown";
 import { VariantPicker } from "@/components/VariantPicker";
 import { ZonePicker } from "@/components/ZonePicker";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { mockupSrc } from "@/lib/mockups";
 import { computePrice } from "@/lib/pricing";
 import type { Product, Upload } from "@/lib/types";
+
+const PRINT_METHOD_LABEL: Record<string, string> = {
+  embroidery: "Embroidered",
+  dtg: "Direct-to-garment",
+};
 
 const FIRST = <T,>(xs: T[]): T => xs[0];
 
@@ -40,8 +47,7 @@ export function Customizer({ product }: { product: Product }) {
     return computePrice({ product, variant, zone, quantity });
   }, [product, variant, zone, quantity]);
 
-  const mockupView = zone?.name === "full_back" ? "back" : "front";
-  const mockupSrc = `/mockups/${color.toLowerCase()}/${mockupView}.png`;
+  const currentMockupSrc = mockupSrc(product, color, zone);
 
   const canCheckout = upload != null && variant != null && zone != null;
 
@@ -61,16 +67,26 @@ export function Customizer({ product }: { product: Product }) {
     <div className="grid gap-8 lg:grid-cols-[1fr_minmax(360px,420px)]">
       {/* Left: preview (sticky on desktop) */}
       <div className="lg:sticky lg:top-6 lg:self-start">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="text-xs">
+            {PRINT_METHOD_LABEL[product.print_method] ?? product.print_method}
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            {product.zones.length}{" "}
+            {product.zones.length === 1 ? "placement" : "placements"} available
+          </span>
+        </div>
         <h1 className="mb-2 text-2xl font-semibold tracking-tight md:text-3xl">
           {product.name}
         </h1>
-        <p className="mb-6 text-sm text-muted-foreground">
-          Customize and preview before you commit. We confirm the design with
-          you before stitching.
-        </p>
+        {product.description && (
+          <p className="mb-6 max-w-prose text-sm text-muted-foreground">
+            {product.description}
+          </p>
+        )}
         {zone && (
           <MockupCanvas
-            mockupSrc={mockupSrc}
+            mockupSrc={currentMockupSrc}
             logoSrc={logoPreviewUrl}
             zone={zone}
           />
@@ -105,6 +121,7 @@ export function Customizer({ product }: { product: Product }) {
 
         <Section title="3. Upload your logo">
           <LogoUploader
+            printMethod={product.print_method}
             onUploaded={(u, preview) => {
               setUpload(u);
               setLogoPreviewUrl(preview);

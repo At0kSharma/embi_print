@@ -11,11 +11,14 @@ interface Props {
   zone: PlacementZone;
 }
 
-const ZONE_LABEL: Record<PlacementZone["name"], string> = {
+const ZONE_LABEL: Record<string, string> = {
   left_chest: "Left chest",
   center_chest: "Center chest",
   right_chest: "Right chest",
   full_back: "Full back",
+  front: "Front",
+  back: "Back",
+  hood: "Hood",
 };
 
 /**

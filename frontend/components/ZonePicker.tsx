@@ -6,18 +6,24 @@ import { formatUSD } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import type { PlacementZone } from "@/lib/types";
 
-const ZONE_LABEL: Record<PlacementZone["name"], string> = {
+const ZONE_LABEL: Record<string, string> = {
   left_chest: "Left chest",
   center_chest: "Center chest",
   right_chest: "Right chest",
   full_back: "Full back",
+  front: "Front",
+  back: "Back",
+  hood: "Hood",
 };
 
-const ZONE_DESCRIPTION: Record<PlacementZone["name"], string> = {
+const ZONE_DESCRIPTION: Record<string, string> = {
   left_chest: "Heart side · classic crest",
   center_chest: "Front and centered",
   right_chest: "Off-heart accent",
   full_back: "Statement piece",
+  front: "Large front canvas",
+  back: "Full-back artwork",
+  hood: "Centered on the hood crown",
 };
 
 interface Props {
