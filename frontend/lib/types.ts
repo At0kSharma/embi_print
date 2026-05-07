@@ -23,6 +23,7 @@ export interface ProductVariant {
   color: string;
   size: string;
   price_delta: number;
+  printful_variant_id: string;
 }
 
 export type PrintMethod = "embroidery" | "dtg";

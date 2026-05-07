@@ -69,6 +69,8 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - INTERNAL_API_URL=http://fastapi:8000
       - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
     volumes:
       - ./frontend:/app
       - /app/node_modules

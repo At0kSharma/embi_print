@@ -19,6 +19,9 @@ class ProductVariantOut(BaseModel):
     color: str
     size: str
     price_delta: float
+    # Operational identifier mapped to Printful's catalog. Not sensitive
+    # — these are public catalog ids — but the storefront ignores them.
+    printful_variant_id: str
 
     model_config = {"from_attributes": True}
 
