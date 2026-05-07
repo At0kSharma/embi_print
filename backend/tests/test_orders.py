@@ -131,7 +131,13 @@ def test_create_order_zone_variant_mismatch(client, seeded_client, upload_id):
 
     db = TestSessionLocal()
     try:
-        other = Product(name="__test_other__", type="shirt", base_price=10.0)
+        other = Product(
+            slug="__test_other__",
+            name="__test_other__",
+            type="shirt",
+            print_method="embroidery",
+            base_price=10.0,
+        )
         db.add(other)
         db.flush()
         other_zone = PZ(

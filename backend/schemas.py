@@ -25,8 +25,11 @@ class ProductVariantOut(BaseModel):
 
 class ProductOut(BaseModel):
     id: str
+    slug: str
     name: str
     type: str
+    description: str | None = None
+    print_method: str
     base_price: float
     zones: list[PlacementZoneOut]
     variants: list[ProductVariantOut]

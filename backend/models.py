@@ -12,6 +12,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -27,11 +28,21 @@ def now_utc():
     return datetime.now(timezone.utc)
 
 
+class PrintMethod(str, enum.Enum):
+    embroidery = "embroidery"
+    dtg = "dtg"
+
+
 class Product(Base):
     __tablename__ = "products"
     id = Column(String, primary_key=True, default=new_uuid)
+    slug = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     type = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    print_method = Column(
+        Enum(PrintMethod), nullable=False, default=PrintMethod.embroidery
+    )
     base_price = Column(Numeric(10, 2), nullable=False)
     zones = relationship("PlacementZone", back_populates="product")
     variants = relationship("ProductVariant", back_populates="product")

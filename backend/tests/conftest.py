@@ -75,7 +75,14 @@ def seeded_client(setup_test_db):
     """TestClient with a seeded product (variants + zones) in the test DB."""
     db = TestSessionLocal()
     try:
-        shirt = Product(name="Classic T-Shirt", type="shirt", base_price=20.00)
+        shirt = Product(
+            slug="classic-tee",
+            name="Classic T-Shirt",
+            type="shirt",
+            description="Test fixture",
+            print_method="embroidery",
+            base_price=20.00,
+        )
         db.add(shirt)
         db.flush()
         for color in ("White", "Black"):

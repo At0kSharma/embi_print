@@ -5,7 +5,7 @@ Idempotent — re-running after a successful seed is a no-op. After the
 variants live in `product_variants` and are seeded here.
 """
 from database import SessionLocal
-from models import PlacementZone, Product, ProductVariant
+from models import PlacementZone, PrintMethod, Product, ProductVariant
 
 # Placeholder Printful catalog variant IDs. Replace with real values
 # from https://www.printful.com/api/products once the Printful account
@@ -36,8 +36,14 @@ def seed():
             return
 
         shirt = Product(
+            slug="classic-tee",
             name="Classic T-Shirt",
             type="shirt",
+            description=(
+                "100% combed ring-spun cotton. Pre-shrunk, side-seamed, "
+                "midweight. Soft hand-feel that holds up wash after wash."
+            ),
+            print_method=PrintMethod.embroidery,
             base_price=20.00,
         )
         db.add(shirt)

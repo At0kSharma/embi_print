@@ -23,10 +23,15 @@ export interface ProductVariant {
   price_delta: number;
 }
 
+export type PrintMethod = "embroidery" | "dtg";
+
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   type: string;
+  description: string | null;
+  print_method: PrintMethod;
   base_price: number;
   zones: PlacementZone[];
   variants: ProductVariant[];
