@@ -56,6 +56,9 @@ class ProductVariant(Base):
     id = Column(String, primary_key=True, default=new_uuid)
     product_id = Column(String, ForeignKey("products.id"), nullable=False)
     color = Column(String, nullable=False)
+    # Hex code for the swatch (e.g. "#1B2A4A"). Optional — when NULL the
+    # frontend falls back to a named-color map and finally to neutral grey.
+    hex_color = Column(String(9), nullable=True)
     size = Column(String, nullable=False)
     printful_variant_id = Column(String, nullable=False)
     price_delta = Column(Numeric(10, 2), nullable=False, default=0)

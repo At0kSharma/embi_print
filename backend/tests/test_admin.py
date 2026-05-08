@@ -187,6 +187,64 @@ def test_add_variant(client, auth, seeded_client):
     assert body["variants"][0]["color"] == "Crimson"
 
 
+def test_add_variant_with_hex_color(client, auth, seeded_client):
+    create = client.post(
+        "/admin/products",
+        auth=auth,
+        json={
+            "slug": "hex-test",
+            "name": "Hex test",
+            "type": "shirt",
+            "print_method": "embroidery",
+            "base_price": 10.0,
+        },
+    )
+    pid = create.json()["id"]
+
+    resp = client.post(
+        f"/admin/products/{pid}/variants",
+        auth=auth,
+        json={
+            "color": "Olive",
+            "hex_color": "#556B2F",
+            "size": "M",
+            "printful_variant_id": "PF_OLIVE_M",
+            "price_delta": 0,
+        },
+    )
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["variants"][0]["hex_color"] == "#556B2F"
+
+
+def test_add_variant_rejects_bad_hex(client, auth, seeded_client):
+    create = client.post(
+        "/admin/products",
+        auth=auth,
+        json={
+            "slug": "bad-hex",
+            "name": "Bad hex",
+            "type": "shirt",
+            "print_method": "embroidery",
+            "base_price": 10.0,
+        },
+    )
+    pid = create.json()["id"]
+
+    resp = client.post(
+        f"/admin/products/{pid}/variants",
+        auth=auth,
+        json={
+            "color": "Mystery",
+            "hex_color": "not-a-color",
+            "size": "M",
+            "printful_variant_id": "PF_X",
+            "price_delta": 0,
+        },
+    )
+    assert resp.status_code == 422
+
+
 def test_add_variant_rejects_duplicate(client, auth, seeded_client):
     create = client.post(
         "/admin/products",

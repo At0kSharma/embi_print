@@ -17,12 +17,20 @@ interface Props {
   onSelect: (color: string, size: string) => void;
 }
 
-const SWATCH_HEX: Record<string, string> = {
-  White: "#FFFFFF",
+// Fallback when a variant doesn't carry a hex_color (e.g. legacy rows
+// pre-migration or admin forgot to set one). Anything not here renders
+// as muted grey, which still works visually.
+const FALLBACK_HEX: Record<string, string> = {
+  White: "#F5F0E8",
   Black: "#111111",
   Navy: "#1B2A4A",
   Forest: "#1F4D3F",
+  Charcoal: "#3C3C42",
 };
+
+function swatchHex(variant: { color: string; hex_color: string | null }): string {
+  return variant.hex_color ?? FALLBACK_HEX[variant.color] ?? "#9CA3AF";
+}
 
 export function VariantPicker({
   variants,
@@ -30,7 +38,12 @@ export function VariantPicker({
   selectedSize,
   onSelect,
 }: Props) {
-  const colors = Array.from(new Set(variants.map((v) => v.color)));
+  // De-duplicate by color but keep the first hex we see for that color
+  // — if the admin set inconsistent hex per size (they shouldn't), the
+  // first variant wins.
+  const colors = Array.from(
+    new Map(variants.map((v) => [v.color, v])).values(),
+  );
   const sizes = Array.from(new Set(variants.map((v) => v.size))).sort(
     (a, b) => sizeOrder(a) - sizeOrder(b),
   );
@@ -44,10 +57,11 @@ export function VariantPicker({
           <span className="text-xs text-muted-foreground">{selectedColor}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {colors.map((c) => {
+          {colors.map((variant) => {
+            const c = variant.color;
             const isSelected = c === selectedColor;
-            const hex = SWATCH_HEX[c] ?? "#888";
-            const isLight = hex.toUpperCase() === "#FFFFFF";
+            const hex = swatchHex(variant);
+            const isLight = isLightColor(hex);
             return (
               <button
                 key={c}
@@ -109,7 +123,21 @@ export function VariantPicker({
 }
 
 function sizeOrder(size: string): number {
-  const order = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const order = ["OS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"];
   const i = order.indexOf(size);
   return i === -1 ? 99 : i;
+}
+
+/**
+ * Determine if a hex color is "light" so we know whether to use a dark
+ * or light checkmark on top of it. Uses the YIQ luminance formula.
+ */
+function isLightColor(hex: string): boolean {
+  const m = /^#?([0-9A-Fa-f]{6,8})$/.exec(hex);
+  if (!m) return false;
+  const v = m[1];
+  const r = parseInt(v.slice(0, 2), 16);
+  const g = parseInt(v.slice(2, 4), 16);
+  const b = parseInt(v.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 175;
 }

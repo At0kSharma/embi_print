@@ -24,6 +24,17 @@ def _make_variant_ids(slug: str, colors: list[str], sizes: list[str]) -> dict:
     }
 
 
+# Tasteful default swatches for the seeded catalog. Admins can pick
+# anything for new products via the variant form.
+COLOR_HEX = {
+    "White":    "#F5F0E8",
+    "Black":    "#111111",
+    "Navy":     "#1B2A4A",
+    "Forest":   "#1F4D3F",
+    "Charcoal": "#3C3C42",
+}
+
+
 # ── Zone presets ────────────────────────────────────────────────
 # (name, add_on_price, max_w_mm, max_h_mm, position {x_pct, y_pct, w_pct, h_pct})
 
@@ -173,6 +184,7 @@ def _seed_product(db, spec: dict) -> Product:
                 ProductVariant(
                     product_id=product.id,
                     color=color,
+                    hex_color=COLOR_HEX.get(color),
                     size=size,
                     printful_variant_id=pf_ids[(color, size)],
                     price_delta=Decimal("0.00"),

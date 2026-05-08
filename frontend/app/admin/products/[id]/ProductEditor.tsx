@@ -178,6 +178,7 @@ function VariantsCard({
 }) {
   const [pending, startTransition] = useTransition();
   const [color, setColor] = useState("");
+  const [hex, setHex] = useState("#111111");
   const [size, setSize] = useState("");
   const [printfulId, setPrintfulId] = useState("");
   const [delta, setDelta] = useState("0");
@@ -188,12 +189,14 @@ function VariantsCard({
       try {
         const updated = await addVariantAction(product.id, {
           color: color.trim(),
+          hex_color: hex,
           size: size.trim(),
           printful_variant_id: printfulId.trim(),
           price_delta: parseFloat(delta) || 0,
         });
         onChange(updated);
         setColor("");
+        setHex("#111111");
         setSize("");
         setPrintfulId("");
         setDelta("0");
@@ -249,7 +252,16 @@ function VariantsCard({
               <tbody className="divide-y">
                 {product.variants.map((v) => (
                   <tr key={v.id}>
-                    <td className="px-3 py-1.5">{v.color}</td>
+                    <td className="px-3 py-1.5">
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className="inline-block h-3 w-3 rounded-full ring-1 ring-border"
+                          style={{ backgroundColor: v.hex_color ?? "#9CA3AF" }}
+                          aria-hidden
+                        />
+                        {v.color}
+                      </span>
+                    </td>
                     <td className="px-3 py-1.5">{v.size}</td>
                     <td className="px-3 py-1.5"><code className="text-xs">{v.printful_variant_id}</code></td>
                     <td className="px-3 py-1.5 text-right tabular-nums">${v.price_delta.toFixed(2)}</td>
@@ -272,11 +284,44 @@ function VariantsCard({
             </table>
           </div>
         )}
-        <form onSubmit={handleAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1fr_100px_auto]">
-          <Input placeholder="Color (e.g. White)" value={color} onChange={(e) => setColor(e.target.value)} required />
-          <Input placeholder="Size (e.g. M)" value={size} onChange={(e) => setSize(e.target.value)} required />
-          <Input placeholder="Printful variant id" value={printfulId} onChange={(e) => setPrintfulId(e.target.value)} required className="font-mono text-xs" />
-          <Input type="number" step="0.01" min="0" placeholder="Δ" value={delta} onChange={(e) => setDelta(e.target.value)} />
+        <form
+          onSubmit={handleAdd}
+          className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_60px_1fr_1fr_100px_auto]"
+        >
+          <Input
+            placeholder="Color (e.g. White)"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            required
+          />
+          <input
+            type="color"
+            value={hex}
+            onChange={(e) => setHex(e.target.value)}
+            aria-label="Swatch color"
+            className="h-9 w-full cursor-pointer rounded-md border bg-background p-1"
+          />
+          <Input
+            placeholder="Size (e.g. M)"
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
+            required
+          />
+          <Input
+            placeholder="Printful variant id"
+            value={printfulId}
+            onChange={(e) => setPrintfulId(e.target.value)}
+            required
+            className="font-mono text-xs"
+          />
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Δ"
+            value={delta}
+            onChange={(e) => setDelta(e.target.value)}
+          />
           <Button type="submit" disabled={pending} size="sm">
             <Plus className="mr-1 h-3.5 w-3.5" /> Add
           </Button>

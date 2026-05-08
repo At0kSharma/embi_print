@@ -17,6 +17,7 @@ class PlacementZoneOut(BaseModel):
 class ProductVariantOut(BaseModel):
     id: str
     color: str
+    hex_color: str | None = None
     size: str
     price_delta: float
     # Operational identifier mapped to Printful's catalog. Not sensitive
@@ -124,6 +125,11 @@ class ProductUpdate(BaseModel):
 
 class VariantCreate(BaseModel):
     color: str = Field(..., min_length=1, max_length=40)
+    # Hex like "#FF6600" or "#FFF" or 8-char "#RRGGBBAA". Optional.
+    hex_color: str | None = Field(
+        None,
+        pattern=r"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
+    )
     size: str = Field(..., min_length=1, max_length=20)
     printful_variant_id: str = Field(..., min_length=1, max_length=80)
     price_delta: float = Field(0, ge=0)

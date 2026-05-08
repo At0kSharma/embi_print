@@ -107,6 +107,7 @@ export const adminApi = {
     productId: string,
     payload: {
       color: string;
+      hex_color?: string | null;
       size: string;
       printful_variant_id: string;
       price_delta: number;

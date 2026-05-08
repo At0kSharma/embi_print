@@ -150,6 +150,7 @@ def add_variant(
     variant = ProductVariant(
         product_id=product_id,
         color=payload.color,
+        hex_color=payload.hex_color,
         size=payload.size,
         printful_variant_id=payload.printful_variant_id,
         price_delta=Decimal(str(payload.price_delta)),

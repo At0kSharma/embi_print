@@ -21,6 +21,8 @@ export interface PlacementZone {
 export interface ProductVariant {
   id: string;
   color: string;
+  /** Hex code like "#1B2A4A" — admin-supplied; fallback handled client-side. */
+  hex_color: string | null;
   size: string;
   price_delta: number;
   printful_variant_id: string;

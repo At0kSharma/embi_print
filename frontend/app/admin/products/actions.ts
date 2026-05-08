@@ -47,6 +47,7 @@ export async function addVariantAction(
   productId: string,
   input: {
     color: string;
+    hex_color?: string | null;
     size: string;
     printful_variant_id: string;
     price_delta: number;
